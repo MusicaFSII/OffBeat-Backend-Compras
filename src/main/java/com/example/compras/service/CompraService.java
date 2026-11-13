@@ -22,14 +22,14 @@ public class CompraService {
     private final CompraRepository compraRepo;
     private final CompraMapper compraMapper;
     private final UsuarioClient usuarioClient;
-    private final WebClient productoClient; //Acceso a API de productos
+    private final WebClient productosWebClient; //Acceso a API de productos
 
     public CompraService(CompraRepository compraRepo, CompraMapper compraMapper, 
-        UsuarioClient usuarioClient, @Qualifier("productoApiWebClient")WebClient productoClient){
+        UsuarioClient usuarioClient, @Qualifier("productosWebClient")WebClient productosWebClient){
         this.compraRepo = compraRepo;
         this.compraMapper = compraMapper;
         this.usuarioClient = usuarioClient;
-        this.productoClient = productoClient; 
+        this.productosWebClient = productosWebClient; 
     }
 
     //obtiene todas las compras ordenada de la mas reciente a la mas antigua
@@ -88,7 +88,7 @@ public class CompraService {
     //consumo de API productos - obtención de lista de productos
     public List<ProdAgregarDTO> obtenerProductosByCodigos(List<String> codigos){
 
-        return productoClient.post()
+        return productosWebClient.post()
         .uri("/lista")
         .bodyValue(codigos)
         .retrieve()
