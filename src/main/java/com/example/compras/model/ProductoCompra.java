@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductoCompra {
 
-    //id o codigo del producto en el microservicio de productos
-    @Column(name="producto_id")
-    private String productoId;
+    //codigo del producto en el microservicio de productos
+    @Column(name="codigo")
+    private String codigo;
 
     @Column(name="nombre_producto", nullable = false)
     private String nombre;

@@ -41,7 +41,7 @@ public class CompraMapper {
 
         private DetalleCompra toDetalle(ItemCompraDTO item){
         ProductoCompra producto = new ProductoCompra(
-            item.getProductoId(),
+            item.getCodigo(),
             item.getNombre(),
             item.getPrecio()
         );

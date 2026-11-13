@@ -19,7 +19,7 @@ import com.example.compras.service.CompraService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/compras")
+@RequestMapping("/api/v1/compras")
 @CrossOrigin(origins = "*")
 public class CompraController {
 
