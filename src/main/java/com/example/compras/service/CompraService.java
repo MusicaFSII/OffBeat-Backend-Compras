@@ -12,10 +12,10 @@ import com.example.compras.exception.CompraNoEncontradaException;
 import com.example.compras.mapper.CompraMapper;
 import com.example.compras.model.Compra;
 import com.example.compras.repository.CompraRepository;
-import com.example.compras.config.ProductoClient;
 import com.example.compras.dto.ItemCompraDTO;
 import com.example.compras.dto.ProductoRespuestaDTO;
 import com.example.compras.exception.ProductoNoEncontradoException;
+import com.example.compras.exception.UsuarioNoRegistradoException;
 import com.example.compras.model.ProductoCompra;
 
 @Service
@@ -24,13 +24,11 @@ public class CompraService {
     private final CompraRepository compraRepo;
     private final CompraMapper compraMapper;
     private final UsuarioClient usuarioClient;
-    private final ProductoClient productoClient;
 
-    public CompraService(CompraRepository compraRepo, CompraMapper compraMapper, UsuarioClient usuarioClient, ProductoClient productoClient){
+    public CompraService(CompraRepository compraRepo, CompraMapper compraMapper, UsuarioClient usuarioClient){
         this.compraRepo = compraRepo;
         this.compraMapper = compraMapper;
         this.usuarioClient = usuarioClient;
-        this.productoClient = productoClient;
     }
 
     //obtiene todas las compras ordenada de la mas reciente a la mas antigua
@@ -55,18 +53,7 @@ public class CompraService {
             usuarioId = usuarioClient.obtenerIdPorCorreo(dto.getCorreo());
         } catch (Exception e) {
             e.printStackTrace();
-            throw new IllegalArgumentException("El correo ingresado no está registrado en el sistema. Debes registrar una cuenta primero.");
-        }
-
-        List<String> codigos = dto.getProductos().stream()
-            .map(ItemCompraDTO::getProductoId).distinct().toList();
-        Map<String, ProductoRespuestaDTO> catalogo = productoClient.obtenerPorCodigos(codigos);
-
-        for (ItemCompraDTO item : dto.getProductos()) {
-            ProductoRespuestaDTO real = catalogo.get(item.getProductoId());
-            if (real == null) throw new ProductoNoEncontradoException(item.getProductoId());
-            item.setNombre(real.getNombre());
-            item.setPrecio(real.getPrecio());
+            throw new UsuarioNoRegistradoException();
         }
 
         Compra compra = compraMapper.toEntity(dto);
@@ -77,7 +64,7 @@ public class CompraService {
             for (int i = 0; i < compra.getDetalles().size(); i++) {
                 var detalle = compra.getDetalles().get(i);
                 var itemDto = dto.getProductos().get(i);
-                
+
                 if (detalle.getProducto() == null) {
                     detalle.setProducto(new ProductoCompra());
                 }
