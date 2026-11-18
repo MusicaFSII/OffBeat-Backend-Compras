@@ -2,6 +2,7 @@ package com.example.compras.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,11 @@ import com.example.compras.exception.CompraNoEncontradaException;
 import com.example.compras.mapper.CompraMapper;
 import com.example.compras.model.Compra;
 import com.example.compras.repository.CompraRepository;
+import com.example.compras.client.ProductoClient;
+import com.example.compras.dto.ItemCompraDTO;
+import com.example.compras.dto.ProductoRespuestaDTO;
+import com.example.compras.exception.ProductoNoEncontradoException;
+import com.example.compras.model.ProductoCompra;
 
 @Service
 public class CompraService {
@@ -18,11 +24,13 @@ public class CompraService {
     private final CompraRepository compraRepo;
     private final CompraMapper compraMapper;
     private final UsuarioClient usuarioClient;
+    private final ProductoClient productoClient;
 
-    public CompraService(CompraRepository compraRepo, CompraMapper compraMapper, UsuarioClient usuarioClient){
+    public CompraService(CompraRepository compraRepo, CompraMapper compraMapper, UsuarioClient usuarioClient, ProductoClient productoClient){
         this.compraRepo = compraRepo;
         this.compraMapper = compraMapper;
         this.usuarioClient = usuarioClient;
+        this.productoClient = productoClient;
     }
 
     //obtiene todas las compras ordenada de la mas reciente a la mas antigua
@@ -40,17 +48,48 @@ public class CompraService {
         return compraRepo.findByUsuarioIdOrderByFechaDesc(usuarioId);
     }
 
-    //registra una compra, guarda la cabecera y sus detalles
+   //registra una compra, guarda la cabecera y sus detalles
     public Compra registrarCompra(CompraDTO dto){
-        //si el correo no tiene cuenta lanza 403 y la compra no se guarda
-        Long usuarioId = usuarioClient.obtenerIdPorCorreo(dto.getCorreo());
+        Long usuarioId;
+        try {
+            usuarioId = usuarioClient.obtenerIdPorCorreo(dto.getCorreo());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("El correo ingresado no está registrado en el sistema. Debes registrar una cuenta primero.");
+        }
+
+        List<String> codigos = dto.getProductos().stream()
+            .map(ItemCompraDTO::getProductoId).distinct().toList();
+        Map<String, ProductoRespuestaDTO> catalogo = productoClient.obtenerPorCodigos(codigos);
+
+        for (ItemCompraDTO item : dto.getProductos()) {
+            ProductoRespuestaDTO real = catalogo.get(item.getProductoId());
+            if (real == null) throw new ProductoNoEncontradoException(item.getProductoId());
+            item.setNombre(real.getNombre());
+            item.setPrecio(real.getPrecio());
+        }
 
         Compra compra = compraMapper.toEntity(dto);
         compra.setUsuarioId(usuarioId);
 
-        double total = compra.getDetalles().stream()
-            .mapToDouble(d -> d.getProducto().getPrecio() * d.getCantidad())
-            .sum();
+        double total = 0.0;
+        if (compra.getDetalles() != null) {
+            for (int i = 0; i < compra.getDetalles().size(); i++) {
+                var detalle = compra.getDetalles().get(i);
+                var itemDto = dto.getProductos().get(i);
+                
+                if (detalle.getProducto() == null) {
+                    detalle.setProducto(new ProductoCompra());
+                }
+
+                detalle.getProducto().setPrecio(itemDto.getPrecio());
+                detalle.getProducto().setNombre(itemDto.getNombre());
+                detalle.getProducto().setProductoId(itemDto.getProductoId());
+
+                total += itemDto.getPrecio() * detalle.getCantidad();
+            }
+        }
+
         compra.setTotal(total);
         compra.setFecha(LocalDateTime.now());
 

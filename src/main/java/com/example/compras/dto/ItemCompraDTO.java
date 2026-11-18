@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ItemCompraDTO {
 
+    @NotBlank(message = "Cada producto debe tener codigo")
     private String productoId;
 
     @NotBlank(message = "Cada producto debe tener nombre")

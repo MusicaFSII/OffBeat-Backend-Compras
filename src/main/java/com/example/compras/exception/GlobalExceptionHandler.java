@@ -39,4 +39,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> servicioNoDisponible(ServicioNoDisponibleException e){
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", e.getMessage()));
     }
+
+    @ExceptionHandler(ProductoNoEncontradoException.class)
+    public ResponseEntity<Map<String, String>> productoNoEncontrado(ProductoNoEncontradoException e){
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
 }

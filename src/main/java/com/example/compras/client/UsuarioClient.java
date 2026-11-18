@@ -8,9 +8,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.example.compras.dto.UsuarioRespuestaDTO;
 import com.example.compras.exception.ServicioNoDisponibleException;
 import com.example.compras.exception.UsuarioNoRegistradoException;
+import lombok.Data;
 
 @Component
 public class UsuarioClient {
@@ -21,13 +21,20 @@ public class UsuarioClient {
         this.webClient = webClient;
     }
 
-    //devuelve el id del usuario con ese correo; lanza 403 si no tiene cuenta y 503 si usuarios no responde
+    // Clase interna temporal o DTO que matchee exactamente el id que devuelve el usuario
+    @Data
+    private static class UsuarioTempDTO {
+        private Long id;
+        private String correo;
+    }
+
+    //devuelve el id del usuario con ese correo
     public Long obtenerIdPorCorreo(String correo){
         try {
-            UsuarioRespuestaDTO usuario = webClient.get()
+            UsuarioTempDTO usuario = webClient.get()
                 .uri("/api/usuarios/correo/{correo}", correo)
                 .retrieve()
-                .bodyToMono(UsuarioRespuestaDTO.class)
+                .bodyToMono(UsuarioTempDTO.class)
                 .block(Duration.ofSeconds(3));
 
             if(usuario == null || usuario.getId() == null){

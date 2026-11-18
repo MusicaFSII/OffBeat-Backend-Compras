@@ -4,4 +4,8 @@ public class ServicioNoDisponibleException extends RuntimeException {
     public ServicioNoDisponibleException(){
         super("No se pudo verificar tu cuenta, intenta nuevamente en unos minutos");
     }
+
+    public ServicioNoDisponibleException(String mensaje){
+        super(mensaje);
+    }
 }
