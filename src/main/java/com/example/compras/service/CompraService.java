@@ -12,7 +12,7 @@ import com.example.compras.exception.CompraNoEncontradaException;
 import com.example.compras.mapper.CompraMapper;
 import com.example.compras.model.Compra;
 import com.example.compras.repository.CompraRepository;
-import com.example.compras.client.ProductoClient;
+import com.example.compras.config.ProductoClient;
 import com.example.compras.dto.ItemCompraDTO;
 import com.example.compras.dto.ProductoRespuestaDTO;
 import com.example.compras.exception.ProductoNoEncontradoException;

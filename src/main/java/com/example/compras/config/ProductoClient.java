@@ -1,4 +1,4 @@
-package com.example.compras.client;
+package com.example.compras.config;
 
 import java.util.List;
 import java.util.Map;
