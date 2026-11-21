@@ -2,7 +2,6 @@ package com.example.compras.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -12,11 +11,6 @@ import com.example.compras.exception.CompraNoEncontradaException;
 import com.example.compras.mapper.CompraMapper;
 import com.example.compras.model.Compra;
 import com.example.compras.repository.CompraRepository;
-import com.example.compras.dto.ItemCompraDTO;
-import com.example.compras.dto.ProductoRespuestaDTO;
-import com.example.compras.exception.ProductoNoEncontradoException;
-import com.example.compras.exception.UsuarioNoRegistradoException;
-import com.example.compras.model.ProductoCompra;
 
 @Service
 public class CompraService {
@@ -48,34 +42,14 @@ public class CompraService {
 
    //registra una compra, guarda la cabecera y sus detalles
     public Compra registrarCompra(CompraDTO dto){
-        Long usuarioId;
-        try {
-            usuarioId = usuarioClient.obtenerIdPorCorreo(dto.getCorreo());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new UsuarioNoRegistradoException();
-        }
+        Long usuarioId = usuarioClient.obtenerIdPorCorreo(dto.getCorreo());
 
         Compra compra = compraMapper.toEntity(dto);
         compra.setUsuarioId(usuarioId);
 
-        double total = 0.0;
-        if (compra.getDetalles() != null) {
-            for (int i = 0; i < compra.getDetalles().size(); i++) {
-                var detalle = compra.getDetalles().get(i);
-                var itemDto = dto.getProductos().get(i);
-
-                if (detalle.getProducto() == null) {
-                    detalle.setProducto(new ProductoCompra());
-                }
-
-                detalle.getProducto().setPrecio(itemDto.getPrecio());
-                detalle.getProducto().setNombre(itemDto.getNombre());
-                detalle.getProducto().setProductoId(itemDto.getProductoId());
-
-                total += itemDto.getPrecio() * detalle.getCantidad();
-            }
-        }
+        double total = compra.getDetalles().stream()
+            .mapToDouble(d -> d.getProducto().getPrecio() * d.getCantidad())
+            .sum();
 
         compra.setTotal(total);
         compra.setFecha(LocalDateTime.now());

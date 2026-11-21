@@ -32,7 +32,7 @@ public class UsuarioClient {
     public Long obtenerIdPorCorreo(String correo){
         try {
             UsuarioTempDTO usuario = webClient.get()
-                .uri("/api/usuarios/correo/{correo}", correo)
+                .uri("/api/v1/usuarios/correo/{correo}", correo)
                 .retrieve()
                 .bodyToMono(UsuarioTempDTO.class)
                 .block(Duration.ofSeconds(3));
